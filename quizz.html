@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Interactive Quiz Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      padding: 30px;
+    }
+
+    .quiz-container {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      margin-bottom: 10px;
+    }
+
+    .options {
+      margin: 15px 0;
+    }
+
+    .options label {
+      display: block;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+
+    input[type="text"] {
+      padding: 8px;
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 5px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      margin-top: 10px;
+      font-size: 16px;
+      border: none;
+      cursor: pointer;
+      background: #4caf50;
+      color: white;
+      border-radius: 5px;
+    }
+
+    .btn:hover {
+      background: #43a047;
+    }
+
+    .score {
+      font-size: 20px;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+
+    .result {
+      color: #00796b;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="quiz-container">
+    <h2 id="question">Question Text</h2>
+    <form id="quiz-form">
+      <div class="options" id="options-container"></div>
+      <button type="submit" class="btn">Submit</button>
+    </form>
+    <div class="score" id="score-container"></div>
+  </div>
+
+  <script>
+    const quizData = [
+      {
+        type: "single",
+        question: "Which language is used for web apps?",
+        options: ["Python", "HTML", "Java", "C++"],
+        answer: "HTML"
+      },
+      {
+        type: "multi",
+        question: "Which of the following are JavaScript frameworks/libraries?",
+        options: ["React", "Laravel", "Vue", "Django"],
+        answer: ["React", "Vue"]
+      },
+      {
+        type: "fill",
+        question: "Fill in the blank: The capital of France is ____.",
+        answer: "Paris"
+      }
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+
+    const questionEl = document.getElementById("question");
+    const optionsContainer = document.getElementById("options-container");
+    const form = document.getElementById("quiz-form");
+    const scoreContainer = document.getElementById("score-container");
+
+    function loadQuestion() {
+      const q = quizData[currentQuestion];
+      questionEl.textContent = `Q${currentQuestion + 1}. ${q.question}`;
+      optionsContainer.innerHTML = "";
+
+      if (q.type === "single") {
+        q.options.forEach(opt => {
+          optionsContainer.innerHTML += `
+            <label>
+              <input type="radio" name="answer" value="${opt}" required> ${opt}
+            </label>`;
+        });
+      }
+
+      else if (q.type === "multi") {
+        q.options.forEach(opt => {
+          optionsContainer.innerHTML += `
+            <label>
+              <input type="checkbox" name="answer" value="${opt}"> ${opt}
+            </label>`;
+        });
+      }
+
+      else if (q.type === "fill") {
+        optionsContainer.innerHTML = `
+          <input type="text" name="answer" placeholder="Type your answer here..." required />`;
+      }
+    }
+
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+      const q = quizData[currentQuestion];
+      let userAnswer;
+
+      if (q.type === "single") {
+        const selected = document.querySelector('input[name="answer"]:checked');
+        userAnswer = selected ? selected.value : "";
+        if (userAnswer === q.answer) score++;
+      }
+
+      else if (q.type === "multi") {
+        const selected = [...document.querySelectorAll('input[name="answer"]:checked')].map(i => i.value);
+        const correctSet = new Set(q.answer);
+        const userSet = new Set(selected);
+
+        if (correctSet.size === userSet.size && [...correctSet].every(ans => userSet.has(ans))) {
+          score++;
+        }
+      }
+
+      else if (q.type === "fill") {
+        const input = document.querySelector('input[name="answer"]');
+        userAnswer = input.value.trim().toLowerCase();
+        if (userAnswer === q.answer.toLowerCase()) score++;
+      }
+
+      currentQuestion++;
+      if (currentQuestion < quizData.length) {
+        loadQuestion();
+      } else {
+        showScore();
+      }
+    });
+
+    function showScore() {
+      form.style.display = "none";
+      questionEl.textContent = "Quiz Completed!";
+      scoreContainer.innerHTML = `<div class="result">Your Score: ${score} / ${quizData.length}</div>`;
+    }
+
+    loadQuestion();
+  </script>
+
+</body>
+</html>
